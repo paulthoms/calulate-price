@@ -2,25 +2,21 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WebApp Mệnh Giá</title>
+  <title>aaWebApp Mệnh Giá</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Segoe UI", Roboto, sans-serif;
       background: #f3f4f6;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
+      box-sizing: border-box;
     }
 
     .app-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      box-sizing: border-box;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     .app-header {
@@ -49,22 +45,21 @@
       border-color: #6366f1;
     }
 
-    /* Thanh gợi ý fixed dưới */
+    /* Thanh gợi ý */
     .denominations-bar {
       position: fixed;
-      bottom: 0;
       left: 0;
       right: 0;
-      background: #ffffff;
+      background: #fff;
       border-top: 1px solid #e5e7eb;
-      display: none; /* ẩn mặc định */
+      display: none;
+      gap: 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 10px;
     }
     .denominations-bar.show {
       display: flex;
-      gap: 12px;
-      padding: 10px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
     }
     .denominations-bar::-webkit-scrollbar {
       display: none;
@@ -94,17 +89,17 @@
     </div>
 
     <!-- input dùng bàn phím số mặc định -->
-    <!-- <input id="amount" type="number" min="0" step="1" placeholder="0" /> -->
-    <input id="amount" type="text" inputmode="numeric" pattern="[0-9]*" />
+    <input id="amount" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" />
   </div>
 
-  <!-- thanh gợi ý fixed -->
+  <!-- thanh gợi ý -->
   <div class="denominations-bar" id="denominations"></div>
 
   <script>
     const amountInput = document.getElementById('amount');
     const denominations = document.getElementById('denominations');
     const MAX = 1000000000; // max mới
+    let initialHeight = window.innerHeight;
 
     function format(n) {
       return Number(n).toLocaleString('vi-VN');
@@ -138,6 +133,20 @@
     amountInput.addEventListener('input', e => {
       const raw = e.target.value.replace(/\D/g, '');
       renderSuggestions(raw);
+    });
+
+    // Bắt chiều cao bàn phím
+    window.addEventListener('resize', () => {
+      const currentHeight = window.innerHeight;
+      const keyboardHeight = initialHeight - currentHeight;
+
+      if (keyboardHeight > 150) { // ngưỡng để nhận biết bàn phím bật
+        denominations.style.position = 'absolute';
+        denominations.style.bottom = keyboardHeight + 'px';
+      } else {
+        denominations.style.position = 'fixed';
+        denominations.style.bottom = '0';
+      }
     });
   </script>
 </body>
