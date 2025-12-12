@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>aaWebApp Mệnh Giá</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>WebApp Mệnh Giá</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     body {
       font-family: "Segoe UI", Roboto, sans-serif;
       background: #f3f4f6;
       margin: 0;
-      padding: 20px;
-      height: 100vh;
+      padding: 16px;
       box-sizing: border-box;
     }
 
     .app-container {
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
     }
 
     .app-header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .app-header h1 {
       font-size: 22px;
@@ -45,11 +44,11 @@
       border-color: #6366f1;
     }
 
-    /* Thanh gợi ý */
     .denominations-bar {
       position: fixed;
       left: 0;
       right: 0;
+      bottom: 0;
       background: #fff;
       border-top: 1px solid #e5e7eb;
       display: none;
@@ -57,6 +56,7 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       padding: 10px;
+      z-index: 999;
     }
     .denominations-bar.show {
       display: flex;
@@ -87,19 +87,15 @@
     <div class="app-header">
       <h1>Nhập mệnh giá</h1>
     </div>
-
-    <!-- input dùng bàn phím số mặc định -->
     <input id="amount" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" />
   </div>
 
-  <!-- thanh gợi ý -->
   <div class="denominations-bar" id="denominations"></div>
 
   <script>
     const amountInput = document.getElementById('amount');
     const denominations = document.getElementById('denominations');
-    const MAX = 1000000000; // max mới
-    let initialHeight = window.innerHeight;
+    const MAX = 1000000000;
 
     function format(n) {
       return Number(n).toLocaleString('vi-VN');
@@ -111,42 +107,54 @@
 
       if (!baseStr) return;
 
-      let base = parseInt(baseStr);
+      const base = parseInt(baseStr, 10);
       if (isNaN(base) || base === 0) return;
 
       const suggestions = [base * 10000, base * 100000, base * 1000000];
-      suggestions.forEach(val => {
+      for (const val of suggestions) {
         if (val >= 10000 && val <= MAX) {
           const btn = document.createElement('button');
           btn.textContent = format(val);
-          btn.dataset.amount = val;
-          btn.onclick = () => { amountInput.value = val; };
+          btn.onclick = () => {
+            amountInput.value = val;
+            amountInput.blur(); // đóng bàn phím sau khi chọn
+          };
           denominations.appendChild(btn);
         }
-      });
+      }
 
       if (denominations.children.length > 0) {
-        denominations.classList.add('show'); // chỉ bật khi có gợi ý
+        denominations.classList.add('show');
       }
     }
 
-    amountInput.addEventListener('input', e => {
+    amountInput.addEventListener('input', (e) => {
       const raw = e.target.value.replace(/\D/g, '');
       renderSuggestions(raw);
     });
 
-    // Bắt chiều cao bàn phím
-    window.addEventListener('resize', () => {
-      const currentHeight = window.innerHeight;
-      const keyboardHeight = initialHeight - currentHeight;
-
-      if (keyboardHeight > 150) { // ngưỡng để nhận biết bàn phím bật
+    // VisualViewport API: đặt bar ngay trên bàn phím
+    function positionBar() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const bottomCut = window.innerHeight - (vv.height + vv.offsetTop);
+      if (bottomCut > 0) {
         denominations.style.position = 'absolute';
-        denominations.style.bottom = keyboardHeight + 'px';
+        denominations.style.bottom = bottomCut + 'px';
       } else {
         denominations.style.position = 'fixed';
         denominations.style.bottom = '0';
       }
+    }
+
+    if (window.visualViewport) {
+      visualViewport.addEventListener('resize', positionBar);
+      visualViewport.addEventListener('scroll', positionBar);
+    }
+    amountInput.addEventListener('focus', positionBar);
+    amountInput.addEventListener('blur', () => {
+      denominations.style.position = 'fixed';
+      denominations.style.bottom = '0';
     });
   </script>
 </body>
