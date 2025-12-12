@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>WebApp Mệnh Giá</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .app-header h1 {
+      font-size: 22px;
+      color: #111827;
+      margin: 0;
+    }
+
+    #amount {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 32px;
+      padding: 14px 16px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      text-align: center;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #amount:focus {
+      border-color: #6366f1;
+    }
+
+    /* Thanh gợi ý fixed dưới */
+    .denominations-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-top: 1px solid #e5e7eb;
+      display: none; /* ẩn mặc định */
+    }
+    .denominations-bar.show {
+      display: flex;
+      gap: 12px;
+      padding: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .denominations-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .denominations-bar button {
+      flex: 0 0 auto;
+      min-width: 120px;
+      padding: 12px;
+      border: none;
+      background: #eef2ff;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 18px;
+      color: #4338ca;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .denominations-bar button:hover {
+      background: #c7d2fe;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="app-header">
+      <h1>Nhập mệnh giá</h1>
+    </div>
+
+    <!-- input dùng bàn phím số mặc định -->
+    <!-- <input id="amount" type="number" min="0" step="1" placeholder="0" /> -->
+    <input id="amount" type="text" inputmode="numeric" pattern="[0-9]*" />
+  </div>
+
+  <!-- thanh gợi ý fixed -->
+  <div class="denominations-bar" id="denominations"></div>
+
+  <script>
+    const amountInput = document.getElementById('amount');
+    const denominations = document.getElementById('denominations');
+    const MAX = 1000000000; // max mới
+
+    function format(n) {
+      return Number(n).toLocaleString('vi-VN');
+    }
+
+    function renderSuggestions(baseStr) {
+      denominations.innerHTML = '';
+      denominations.classList.remove('show');
+
+      if (!baseStr) return;
+
+      let base = parseInt(baseStr);
+      if (isNaN(base) || base === 0) return;
+
+      const suggestions = [base * 10000, base * 100000, base * 1000000];
+      suggestions.forEach(val => {
+        if (val >= 10000 && val <= MAX) {
+          const btn = document.createElement('button');
+          btn.textContent = format(val);
+          btn.dataset.amount = val;
+          btn.onclick = () => { amountInput.value = val; };
+          denominations.appendChild(btn);
+        }
+      });
+
+      if (denominations.children.length > 0) {
+        denominations.classList.add('show'); // chỉ bật khi có gợi ý
+      }
+    }
+
+    amountInput.addEventListener('input', e => {
+      const raw = e.target.value.replace(/\D/g, '');
+      renderSuggestions(raw);
+    });
+  </script>
+</body>
+</html>
